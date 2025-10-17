@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  email         String    @unique
+  passwordHash  String
+  walletBalance Decimal   @default(0)
+  transactions  Json?
+  cart          Json?
+  pendingOtp    String?
+  otpExpiry     DateTime?
+  orders        Order[]
+  createdAt     DateTime  @default(now())
+}
+
+model Product {
+  id          Int        @id @default(autoincrement())
+  name        String
+  price       Decimal
+  imageUrl    String?
+  category    String
+  tags        String[]
+  stock       Int        @default(999)
+  ordersItems OrderItem[]
+  createdAt   DateTime   @default(now())
+}
+
+model Order {
+  id             Int         @id @default(autoincrement())
+  userId         Int
+  user           User        @relation(fields: [userId], references: [id])
+  items          OrderItem[]
+  total          Decimal
+  walletDeducted Decimal     @default(0)
+  status         String      @default("pending")
+  address        Json
+  stripeId       String?
+  createdAt      DateTime    @default(now())
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  qty       Int
+  price     Decimal
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  eventType String
+  date      DateTime
+  message   String?
+  createdAt DateTime @default(now())
+}
+
